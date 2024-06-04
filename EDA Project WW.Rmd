@@ -1,0 +1,115 @@
+---
+title: "EDA Project WW"
+author: "Naithik Shetty"
+date: "2023-12-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+# Load necessary libraries
+library(tidyverse)
+library(readr)  # For read_csv()
+library(dplyr)  # For data manipulation
+
+# Read the data
+wine_data <- read.csv("winequality-white.csv")
+
+# View the first few rows of the data
+head(wine_data)
+
+```
+```{r}
+# Linear Regression for combined dataset
+lm_model <- lm(quality ~ alcohol, data = wine_data)
+
+# Summary of the model
+summary(lm_model)
+
+```
+
+
+```{r}
+# Multiple Regression for combined dataset
+multiple_lm <- lm(quality ~ alcohol + pH , data = wine_data)
+
+# Summary of the model
+summary(multiple_lm)
+
+```
+```{r}
+# Create a binary outcome variable 
+wine_data$high_quality <- ifelse(wine_data$quality > 5, 1, 0)
+# Logistic Regression fr combined dataset
+logistic_model <- glm(high_quality ~ alcohol + pH , 
+                      family = binomial(), data = wine_data)
+# Summary of the model
+summary(logistic_model)
+```
+```{r}
+library(ggplot2)
+
+# Scatter plot for Linear Regression (quality vs. alcohol)
+ggplot(wine_data, aes(x = alcohol, y = quality)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Linear Regression: Quality vs Alcohol", x = "Alcohol", y = "Quality")
+
+# For multiple regression, you might select one predictor for visualization
+# Scatter plot (quality vs. one of the predictors, e.g., pH)
+ggplot(wine_data, aes(x = pH, y = quality)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Multiple Regression: Quality vs pH", x = "pH", y = "Quality")
+
+```
+```{r}
+# Residuals vs Fitted for Linear Regression
+ggplot(wine_data, aes(x = lm_model$fitted.values, y = lm_model$residuals)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(title = "Residuals vs Fitted for Linear Regression", x = "Fitted Values", y = "Residuals")
+
+# Similarly for Multiple Regression
+
+```
+```{r}
+library(pROC)
+
+# Predicted probabilities
+probabilities <- predict(logistic_model, type = "response")
+
+# ROC curve
+roc_curve <- roc(wine_data$high_quality, probabilities)
+plot(roc_curve, main = "ROC Curve for Logistic Regression")
+
+```
+```{r}
+library(caret)
+
+# Predicted classes
+predicted_classes <- ifelse(probabilities > 0.5, 1, 0)
+
+# Confusion Matrix
+confusionMatrix(factor(predicted_classes), factor(wine_data$high_quality))
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
